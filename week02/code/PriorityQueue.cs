@@ -24,19 +24,29 @@
 
         // Find the index of the item with the highest priority to remove
         var highPriorityIndex = 0;
-        for (int index = 1; index < _queue.Count - 1; index++)
+        // DEFECT FIX 1: Changed _queue.Count - 1 to _queue.Count so the last
+        // element is included in the search. The original condition caused the
+        // last item to always be skipped, meaning it could never be selected
+        // as the highest priority even if it had the highest priority value.
+        for (int index = 1; index < _queue.Count; index++)
         {
-            if (_queue[index].Priority >= _queue[highPriorityIndex].Priority)
+            // DEFECT FIX 2: Changed >= to > to preserve FIFO ordering for items
+            // with equal priority. Using >= would replace the tracked index on a
+            // tie, making a later-enqueued item win instead of the earlier one.
+            if (_queue[index].Priority > _queue[highPriorityIndex].Priority)
                 highPriorityIndex = index;
         }
 
         // Remove and return the item with the highest priority
         var value = _queue[highPriorityIndex].Value;
+        // DEFECT FIX 3: Added RemoveAt so the dequeued item is actually removed
+        // from the list. Without this the queue never shrinks and the same item
+        // is returned on every call.
+        _queue.RemoveAt(highPriorityIndex);
         return value;
     }
 
     // DO NOT MODIFY THE CODE IN THIS METHOD
-    // The graders rely on this method to check if you fixed all the bugs, so changes to it will cause you to lose points.
     public override string ToString()
     {
         return $"[{string.Join(", ", _queue)}]";
@@ -55,7 +65,6 @@ internal class PriorityItem
     }
 
     // DO NOT MODIFY THE CODE IN THIS METHOD
-    // The graders rely on this method to check if you fixed all the bugs, so changes to it will cause you to lose points.
     public override string ToString()
     {
         return $"{Value} (Pri:{Priority})";

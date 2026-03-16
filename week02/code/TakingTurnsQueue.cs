@@ -16,8 +16,6 @@ public class TakingTurnsQueue
     /// <summary>
     /// Add new people to the queue with a name and number of turns
     /// </summary>
-    /// <param name="name">Name of the person</param>
-    /// <param name="turns">Number of turns remaining</param>
     public void AddPerson(string name, int turns)
     {
         var person = new Person(name, turns);
@@ -37,17 +35,27 @@ public class TakingTurnsQueue
         {
             throw new InvalidOperationException("No one in the queue.");
         }
-        else
-        {
-            Person person = _people.Dequeue();
-            if (person.Turns > 1)
-            {
-                person.Turns -= 1;
-                _people.Enqueue(person);
-            }
 
-            return person;
+        Person person = _people.Dequeue();
+
+        // DEFECT FIX: The original condition (person.Turns > 1) never re-enqueued
+        // a person whose Turns was 0 or negative (infinite), dropping them from the
+        // queue entirely. The fix re-enqueues infinite-turn people unchanged, and
+        // only decrements and re-enqueues finite-turn people who still have turns left.
+        if (person.Turns <= 0)
+        {
+            // Infinite turns: put back as-is without modifying Turns
+            _people.Enqueue(person);
         }
+        else if (person.Turns > 1)
+        {
+            // Still has turns remaining after this one
+            person.Turns -= 1;
+            _people.Enqueue(person);
+        }
+        // else Turns == 1: last turn used, do not re-enqueue
+
+        return person;
     }
 
     public override string ToString()
