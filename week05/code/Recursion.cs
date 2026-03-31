@@ -42,12 +42,15 @@ public static class Recursion
     public static void PermutationsChoose(List<string> results, string letters, int size, string word = "")
     {
         // TODO Start Problem 2
-        if (word.Length == size) {
+        if (word.Length == size) 
+        {
             results.Add(word);
             return;
         }
-        foreach (char letter in letters) {
-            string remaining = letters.Replace(letter.ToString(), "", 1);
+        foreach (char letter in letters) 
+        {
+            int pos = letters.IndexOf(letter);
+            string remaining = letters[..pos] + letters[(pos + 1)..];
             PermutationsChoose(results, remaining, size, word + letter);
         }
     }
